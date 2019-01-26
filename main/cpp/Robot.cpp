@@ -11,10 +11,19 @@
 
 #include <frc/smartdashboard/SmartDashboard.h>
 
+#include <frc/shuffleboard/Shuffleboard.h>
+
+
 void Robot::RobotInit() {
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
+  // frc::SmartDashboard::PutNumber("Front left encoder");
+  frc::Shuffleboard::GetTab("Encoders").Add("Front left encoder position", fl_encoder.GetPosition());
+  frc::Shuffleboard::GetTab("Encoders").Add("Rear left encoder position", rl_encoder.GetPosition());
+  frc::Shuffleboard::GetTab("Encoders").Add("Front right encoder position", fr_encoder.GetPosition());
+  frc::Shuffleboard::GetTab("Encoders").Add("Rear right encoder position", rr_encoder.GetPosition());
+  // frc::Shuffleboard::GetTab("Encoders").Add("Front left encoder velocity", fl_encoder.GetVelocity());
   //frontRight.SetInverted(true);
   //rearRight.SetInverted(true);
 }
@@ -67,7 +76,18 @@ void Robot::TeleopInit() {
 #define DEADBAND 0.1
 void Robot::TeleopPeriodic() {
   //mecanum drive
-  m_robotDrive.DriveCartesian(deadBand(m_Xbox.GetRawAxis(0)), deadBand(m_Xbox.GetRawAxis(1)), deadBand(m_Xbox.GetRawAxis(4)));
+  m_robotDrive.DriveCartesian(deadBand(m_Xbox.GetRawAxis(0)), deadBand(-m_Xbox.GetRawAxis(1)), deadBand(m_Xbox.GetRawAxis(4)));
+
+  frc::SmartDashboard::PutNumber("Front left encoder position", fl_encoder.GetPosition());
+  // frc::SmartDashboard::PutNumber("Front left encoder velocity", fl_encoder.GetVelocity());
+  frc::SmartDashboard::PutNumber("Rear left encoder position", rl_encoder.GetPosition());
+  // frc::SmartDashboard::PutNumber("Rear left encoder velocity", rl_encoder.GetVelocity());
+  frc::SmartDashboard::PutNumber("Front right encoder position", fr_encoder.GetPosition());
+  // frc::SmartDashboard::PutNumber("Front right encoder velocity", fr_encoder.GetVelocity());
+  frc::SmartDashboard::PutNumber("Rear right encoder position", rr_encoder.GetPosition());
+  // frc::SmartDashboard::PutNumber("Rear right encoder velocity", rr_encoder.GetVelocity());
+  
+  
 
   //A button (hatch panel pneumatics)
   if (m_Xbox.GetAButton()) {
