@@ -57,5 +57,8 @@ class Robot : public frc::TimedRobot {
   // Subsystem motors
   WPI_TalonSRX ballMotor{6};
   WPI_TalonSRX hingeMotor{7};
+  // Subsystem encoders
+  // Encoder hinge_enc = Encoder(0, 1, false, Encoder::EncodingType::k4X);
+
   frc::MecanumDrive m_robotDrive{frontLeft, rearLeft, frontRight, rearRight};
 };

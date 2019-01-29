@@ -23,6 +23,8 @@ void Robot::RobotInit() {
   frc::Shuffleboard::GetTab("Encoders").Add("Rear left encoder position", rl_encoder.GetPosition());
   frc::Shuffleboard::GetTab("Encoders").Add("Front right encoder position", fr_encoder.GetPosition());
   frc::Shuffleboard::GetTab("Encoders").Add("Rear right encoder position", rr_encoder.GetPosition());
+  //frc::Shuffleboard::GetTab("Encoders").Add("Hinge motor control mode", hingeMotor.GetControlMode());
+  frc::Shuffleboard::GetTab("Encoders").Add("Hinge motor Description", hingeMotor.GetDescription());
   // frc::Shuffleboard::GetTab("Encoders").Add("Front left encoder velocity", fl_encoder.GetVelocity());
   //frontRight.SetInverted(true);
   //rearRight.SetInverted(true);
@@ -86,6 +88,7 @@ void Robot::TeleopPeriodic() {
   // frc::SmartDashboard::PutNumber("Front right encoder velocity", fr_encoder.GetVelocity());
   frc::SmartDashboard::PutNumber("Rear right encoder position", rr_encoder.GetPosition());
   // frc::SmartDashboard::PutNumber("Rear right encoder velocity", rr_encoder.GetVelocity());
+  frc::SmartDashboard::PutString("Hinge motor Description", hingeMotor.GetDescription());
   
   
 
@@ -127,7 +130,14 @@ double Robot::deadBand(double val) {
   if (val > -DEADBAND && val < DEADBAND)
      return 0.0;
 
-	return val;
+  // if (val >= 0) {
+  //   return pow(val, 1.25);
+  // } else{
+  //   return -pow(val, 1.25);
+  // }
+
+  return val;
+	
 }
 
 
