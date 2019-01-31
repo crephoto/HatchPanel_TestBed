@@ -38,6 +38,10 @@ class Robot : public frc::TimedRobot {
   //static const int front_left_id = 2, rear_left_id = 5, front_right_id = 1, rear_right_id = 4;
   #define BRUSHLESS rev::CANSparkMax::MotorType::kBrushless
 
+  #define HINGE_INTAKE_POSITION 2180 // For injecting cargo ball
+  #define HINGE_EJECT_POSITION 1090 // For ejecting cargo ball
+  #define HINGE_CLOSED_POSITION 0 // Starting configuration
+
   std::string m_autoSelected;
   frc::DoubleSolenoid hatchPanel{0,1};
   frc::XboxController m_Xbox{0};
@@ -57,5 +61,6 @@ class Robot : public frc::TimedRobot {
   // Subsystem motors
   WPI_TalonSRX ballMotor{6};
   WPI_TalonSRX hingeMotor{7};
+  bool hingePIDMode;
   frc::MecanumDrive m_robotDrive{frontLeft, rearLeft, frontRight, rearRight};
 };
