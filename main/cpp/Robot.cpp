@@ -10,7 +10,7 @@
 #include <iostream>
 
 #include <frc/smartdashboard/SmartDashboard.h>
-
+#include <frc/smartdashboard/SendableChooser.h>
 #include <frc/shuffleboard/Shuffleboard.h>
 
 
@@ -23,6 +23,7 @@ void Robot::RobotInit() {
   frc::Shuffleboard::GetTab("Encoders").Add("Rear left encoder position", rl_encoder.GetPosition());
   frc::Shuffleboard::GetTab("Encoders").Add("Front right encoder position", fr_encoder.GetPosition());
   frc::Shuffleboard::GetTab("Encoders").Add("Rear right encoder position", rr_encoder.GetPosition());
+  frc::Shuffleboard::GetTab("Light").Add("Light", 0);//.GetEntry();
   // frc::Shuffleboard::GetTab("Encoders").Add("Front left encoder velocity", fl_encoder.GetVelocity());
   //frontRight.SetInverted(true);
   //rearRight.SetInverted(true);
@@ -76,8 +77,8 @@ void Robot::TeleopInit() {
 #define DEADBAND 0.1
 void Robot::TeleopPeriodic() {
   //mecanum drive
-  m_robotDrive.DriveCartesian(deadBand(m_Xbox.GetRawAxis(0)), deadBand(-m_Xbox.GetRawAxis(1)), deadBand(m_Xbox.GetRawAxis(4)));
-
+  m_robotDrive.DriveCartesian(deadBand(m_Xbox.GetRawAxis(0)), -(deadBand(m_Xbox.GetRawAxis(1))), deadBand(m_Xbox.GetRawAxis(4)));
+  //m_robotDrive.DriveCartesian(m_Xbox.GetRawAxis(0), -m_Xbox.GetRawAxis(1), m_Xbox.GetRawAxis(4));
   frc::SmartDashboard::PutNumber("Front left encoder position", fl_encoder.GetPosition());
   // frc::SmartDashboard::PutNumber("Front left encoder velocity", fl_encoder.GetVelocity());
   frc::SmartDashboard::PutNumber("Rear left encoder position", rl_encoder.GetPosition());
@@ -87,8 +88,6 @@ void Robot::TeleopPeriodic() {
   frc::SmartDashboard::PutNumber("Rear right encoder position", rr_encoder.GetPosition());
   // frc::SmartDashboard::PutNumber("Rear right encoder velocity", rr_encoder.GetVelocity());
   
-  
-
   //A button (hatch panel pneumatics)
   if (m_Xbox.GetAButton()) {
     hatchPanel.Set(frc::DoubleSolenoid::Value::kForward);
@@ -96,6 +95,25 @@ void Robot::TeleopPeriodic() {
   else {
     hatchPanel.Set(frc::DoubleSolenoid::Value::kReverse);
   }
+
+  //X, Y, B button (testing)
+  /*double inputPercent;
+  if (m_Xbox.GetXButton()) {
+    inputPercent = 1.0;
+  }
+  else if (m_Xbox.GetYButton()) {
+    inputPercent = 0.5;
+  }
+  else if (m_Xbox.GetBButton()) {
+    inputPercent = 0.25;
+  }
+  else {
+    inputPercent = 0.0;
+  }*/
+  /*frontLeft.Set(inputPercent);
+  rearLeft.Set(inputPercent);
+  frontRight.Set(-inputPercent);
+  rearRight.Set(-inputPercent);*/
 
   //triggers (ball grabber)
   if (m_Xbox.GetRawAxis(2)>DEADBAND) {
@@ -119,16 +137,59 @@ void Robot::TeleopPeriodic() {
       hingeMotor.Set(ControlMode::PercentOutput, 0.0);
     }
 
+  //ballHatchLight
+    /*frc::SendableChooser<class T>;
+      .AddDefault("Do Nothing", ballHatchLight.Set(frc::Relay::Value::kOff));
+		frc::SendableChooser<class T>;
+      .AddObject("Hatch Panel", ballHatchLight.Set(frc::Relay::Value::kOn));
+    frc::SendableChooser<class T>;
+      .AddObject("Ball", ballHatchLight.Set(frc::Relay::Value::kOff));*/
+    //frc::SmartDashboard::GetNumber("Light", 0);
+    if (m_Xbox.GetXButton()) {
+      ballHatchLight.Set(frc::Relay::Value::kOn);
+      frc::SmartDashboard::PutString("Light", "on");
+    }
+    else if (m_Xbox.GetYButton()) {
+      ballHatchLight.Set(frc::Relay::Value::kOff);
+      frc::SmartDashboard::PutString("Light", "off");
+    }
+    /*else {
+      ballHatchLight.Set(frc::Relay::Value::kOff);
+      frc::SmartDashboard::PutString("Light", "off");
+    }*/
+    
+
+    //need shuffleboard input to change lights
+    //frc::Shuffleboard::
+    //frc::SendableChooser<class T>.Add("Light", 0);
+   // NetworkTableEntry("Light", 0);
+   // frc::SmartDashboard::("Light", mySendable;
+    //ballHatchLight.Set();
+  
+
 }
 
 void Robot::TestPeriodic() {}
 
 double Robot::deadBand(double val) {
-  if (val > -DEADBAND && val < DEADBAND)
-     return 0.0;
+  double newVal;
+  if (val > -DEADBAND && val < DEADBAND) {
+    return 0.0;
+  }
+  if (val != 0) {
+   newVal = pow(val, 2);
+   printf("newVal: %f", newVal);
+  } 
+  if (val >= 0) {
+    return newVal;
+  }
+  else {
+    return -newVal;
+  }
 
-	return val;
+	//return val;
 }
+
 
 
 #ifndef RUNNING_FRC_TESTS

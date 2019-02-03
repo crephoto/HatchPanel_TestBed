@@ -41,6 +41,7 @@ class Robot : public frc::TimedRobot {
   std::string m_autoSelected;
   frc::DoubleSolenoid hatchPanel{0,1};
   frc::XboxController m_Xbox{0};
+  frc::Relay ballHatchLight{0};
 
   // Drive base motor
   rev::CANSparkMax frontLeft{2, BRUSHLESS};
