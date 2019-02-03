@@ -13,13 +13,43 @@
 #include <frc/smartdashboard/SendableChooser.h>
 #include <frc/shuffleboard/Shuffleboard.h>
 
+#include "Constants.h"
+
 
 void Robot::RobotInit() {
+  hingePIDMode = false;
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
   m_robotDrive.SetSafetyEnabled(false);
-  // frc::SmartDashboard::PutNumber("Front left encoder");
+  
+  // PID Hinge Configuration
+   /* lets grab the 360 degree position of the encoder's absolute position */
+	int absolutePosition = hingeMotor.GetSelectedSensorPosition(0) & 0xFFF; /* mask out the bottom12 bits, we don't care about the wrap arounds */
+	/* use the low level API to set the quad encoder signal */
+	hingeMotor.SetSelectedSensorPosition(absolutePosition, kPIDLoopIdx, kTimeoutMs);
+	// Reset the starting configuration to zero
+  // hingeMotor.SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs);
+
+	/* choose the sensor and sensor direction */
+	hingeMotor.ConfigSelectedFeedbackSensor(
+				//FeedbackDevice::CTRE_MagEncoder_Relative, kPIDLoopIdx, kTimeoutMs);
+				FeedbackDevice::QuadEncoder, kPIDLoopIdx, kTimeoutMs);
+	hingeMotor.SetSensorPhase(true);
+
+		/* set the peak and nominal outputs, 12V means full */
+	hingeMotor.ConfigNominalOutputForward(0, kTimeoutMs);
+	hingeMotor.ConfigNominalOutputReverse(0, kTimeoutMs);
+	hingeMotor.ConfigPeakOutputForward(1, kTimeoutMs);
+	hingeMotor.ConfigPeakOutputReverse(-1, kTimeoutMs);
+
+	/* set closed loop gains in slot0 */
+	hingeMotor.Config_kF(kPIDLoopIdx, 0.0, kTimeoutMs);
+	hingeMotor.Config_kP(kPIDLoopIdx, 0.1, kTimeoutMs);
+	hingeMotor.Config_kI(kPIDLoopIdx, 0.0, kTimeoutMs);
+	hingeMotor.Config_kD(kPIDLoopIdx, 0.0, kTimeoutMs);
+  hingeMotor.ConfigClosedloopRamp(.2); // Seconds from neutral to full
+
   frc::Shuffleboard::GetTab("Sensors").Add("Front left drive", fl_encoder.GetPosition());
   frc::Shuffleboard::GetTab("Sensors").Add("Rear left drive", rl_encoder.GetPosition());
   frc::Shuffleboard::GetTab("Sensors").Add("Front right drive", fr_encoder.GetPosition());
@@ -73,10 +103,12 @@ void Robot::AutonomousPeriodic() {
 }
 
 void Robot::TeleopInit() {
+  hingePIDMode = false;
 }
 
 #define DEADBAND 0.1
 void Robot::TeleopPeriodic() {
+
   frc::SmartDashboard::PutNumber("Front left drive", fl_encoder.GetPosition());
   frc::SmartDashboard::PutNumber("Rear left drive", rl_encoder.GetPosition());
   frc::SmartDashboard::PutNumber("Front right drive", fr_encoder.GetPosition());
@@ -93,9 +125,9 @@ void Robot::TeleopPeriodic() {
     DriverStation::ReportError(err_string.c_str());
 
   }  
-
   //A button (hatch panel pneumatics)
-  if (m_Xbox.GetAButton()) {
+  //if (m_Xbox.GetAButton()) {
+  if (m_Xbox.GetRawButton(1)) {
     hatchPanel.Set(frc::DoubleSolenoid::Value::kForward);
   }
   else {
@@ -145,14 +177,39 @@ void Robot::TeleopPeriodic() {
   
   //bumpers (hinge)
   if (m_Xbox.GetRawButton(5)) {
-     hingeMotor.Set(ControlMode::PercentOutput, 0.5);
+     hingeMotor.Set(ControlMode::PercentOutput, .25);
   }
   else if (m_Xbox.GetRawButton(6)) {
-     hingeMotor.Set(ControlMode::PercentOutput, -0.5);
+     hingeMotor.Set(ControlMode::PercentOutput, -.5);
   }
-    else {
+  else if (m_Xbox.GetRawButton(7)) {
+     hingeMotor.Set(ControlMode::Position, HINGE_INTAKE_POSITION);
+     printf("Setting Hinge Position to %d\n", HINGE_INTAKE_POSITION);
+  }
+  else if (m_Xbox.GetRawButton(8)) {
+     hingeMotor.Set(ControlMode::Position, HINGE_CLOSED_POSITION);
+     printf("Setting Hinge Position to %d\n", HINGE_CLOSED_POSITION);
+  }
+//  else {
+//		int currentPosition = hingeMotor.GetSelectedSensorPosition(0);
+//     hingeMotor.Set(ControlMode::Position, currentPosition);
+//  }
+		// Reset the starting configuration to zero 
+  if (m_Xbox.GetRawButton(10)) {
       hingeMotor.Set(ControlMode::PercentOutput, 0.0);
     }
+}
+
+void Robot::TestPeriodic() {
+  frc::SmartDashboard::PutNumber("Front Left", fl_encoder.GetPosition());
+  // frc::SmartDashboard::PutNumber("Front left encoder velocity", fl_encoder.GetVelocity());
+  frc::SmartDashboard::PutNumber("Rear Left", rl_encoder.GetPosition());
+  // frc::SmartDashboard::PutNumber("Rear left encoder velocity", rl_encoder.GetVelocity());
+  frc::SmartDashboard::PutNumber("Front Right", fr_encoder.GetPosition());
+  // frc::SmartDashboard::PutNumber("Front right encoder velocity", fr_encoder.GetVelocity());
+  frc::SmartDashboard::PutNumber("Rear Right", rr_encoder.GetPosition());
+  // frc::SmartDashboard::PutNumber("Rear right encoder velocity", rr_encoder.GetVelocity());
+  // frc::SmartDashboard::PutString("Hinge Motor", hingeMotor.GetDescription());
 
   //ballHatchLight
     /*frc::SendableChooser<class T>;
@@ -185,8 +242,6 @@ void Robot::TeleopPeriodic() {
   
 
 }
-
-void Robot::TestPeriodic() {}
 
   double Robot::deadBand(double val) {
   double newVal;
