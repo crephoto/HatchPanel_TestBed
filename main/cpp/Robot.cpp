@@ -10,7 +10,7 @@
 #include <iostream>
 
 #include <frc/smartdashboard/SmartDashboard.h>
-
+#include <frc/smartdashboard/SendableChooser.h>
 #include <frc/shuffleboard/Shuffleboard.h>
 
 
@@ -20,12 +20,12 @@ void Robot::RobotInit() {
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
   m_robotDrive.SetSafetyEnabled(false);
   // frc::SmartDashboard::PutNumber("Front left encoder");
-  frc::Shuffleboard::GetTab("Sensors").Add("Front left encoder position", fl_encoder.GetPosition());
-  frc::Shuffleboard::GetTab("Sensors").Add("Rear left encoder position", rl_encoder.GetPosition());
-  frc::Shuffleboard::GetTab("Sensors").Add("Front right encoder position", fr_encoder.GetPosition());
-  frc::Shuffleboard::GetTab("Sensors").Add("Rear right encoder position", rr_encoder.GetPosition());
+  frc::Shuffleboard::GetTab("Sensors").Add("Front left drive", fl_encoder.GetPosition());
+  frc::Shuffleboard::GetTab("Sensors").Add("Rear left drive", rl_encoder.GetPosition());
+  frc::Shuffleboard::GetTab("Sensors").Add("Front right drive", fr_encoder.GetPosition());
+  frc::Shuffleboard::GetTab("Sensors").Add("Rear right drive", rr_encoder.GetPosition());
   frc::Shuffleboard::GetTab("Sensors").Add("Gyro Angle", gyro.GetAngle());
-  // frc::Shuffleboard::GetTab("Sensors").Add("Front left encoder velocity", fl_encoder.GetVelocity());
+  frc::Shuffleboard::GetTab("Light").Add("Light", 0);//.GetEntry();
   //frontRight.SetInverted(true);
   //rearRight.SetInverted(true);
 }
@@ -77,6 +77,10 @@ void Robot::TeleopInit() {
 
 #define DEADBAND 0.1
 void Robot::TeleopPeriodic() {
+  frc::SmartDashboard::PutNumber("Front left drive", fl_encoder.GetPosition());
+  frc::SmartDashboard::PutNumber("Rear left drive", rl_encoder.GetPosition());
+  frc::SmartDashboard::PutNumber("Front right drive", fr_encoder.GetPosition());
+  frc::SmartDashboard::PutNumber("Rear right drive", rr_encoder.GetPosition());
   
   frc::SmartDashboard::PutNumber("Gyro Angle", gyro.GetAngle());
   try{
@@ -97,6 +101,25 @@ void Robot::TeleopPeriodic() {
   else {
     hatchPanel.Set(frc::DoubleSolenoid::Value::kReverse);
   }
+
+  //X, Y, B button (testing)
+  /*double inputPercent;
+  if (m_Xbox.GetXButton()) {
+    inputPercent = 1.0;
+  }
+  else if (m_Xbox.GetYButton()) {
+    inputPercent = 0.5;
+  }
+  else if (m_Xbox.GetBButton()) {
+    inputPercent = 0.25;
+  }
+  else {
+    inputPercent = 0.0;
+  }*/
+  /*frontLeft.Set(inputPercent);
+  rearLeft.Set(inputPercent);
+  frontRight.Set(-inputPercent);
+  rearRight.Set(-inputPercent);*/
 
   //triggers (ball grabber)
  /*if (m_Xbox.GetRawAxis(2)>DEADBAND) {
@@ -131,24 +154,58 @@ void Robot::TeleopPeriodic() {
       hingeMotor.Set(ControlMode::PercentOutput, 0.0);
     }
 
+  //ballHatchLight
+    /*frc::SendableChooser<class T>;
+      .AddDefault("Do Nothing", ballHatchLight.Set(frc::Relay::Value::kOff));
+		frc::SendableChooser<class T>;
+      .AddObject("Hatch Panel", ballHatchLight.Set(frc::Relay::Value::kOn));
+    frc::SendableChooser<class T>;
+      .AddObject("Ball", ballHatchLight.Set(frc::Relay::Value::kOff));*/
+    //frc::SmartDashboard::GetNumber("Light", 0);
+    if (m_Xbox.GetXButton()) {
+      ballHatchLight.Set(frc::Relay::Value::kOn);
+      frc::SmartDashboard::PutString("Light", "on");
+    }
+    else if (m_Xbox.GetYButton()) {
+      ballHatchLight.Set(frc::Relay::Value::kOff);
+      frc::SmartDashboard::PutString("Light", "off");
+    }
+    /*else {
+      ballHatchLight.Set(frc::Relay::Value::kOff);
+      frc::SmartDashboard::PutString("Light", "off");
+    }*/
+    
+
+    //need shuffleboard input to change lights
+    //frc::Shuffleboard::
+    //frc::SendableChooser<class T>.Add("Light", 0);
+   // NetworkTableEntry("Light", 0);
+   // frc::SmartDashboard::("Light", mySendable;
+    //ballHatchLight.Set();
+  
+
 }
 
 void Robot::TestPeriodic() {}
 
-double Robot::deadBand(double val) {
+  double Robot::deadBand(double val) {
+  double newVal;
   if (val > -DEADBAND && val < DEADBAND) {
-     return 0.0;
+    return 0.0;
   }
-   if (val >= 0) {
-     return pow(val, 2);
-   } 
-   else{
-     return -pow(val, 2);
-   }
+  if (val != 0) {
+   newVal = pow(val, 2);
+   printf("newVal: %f", newVal);
+  } 
+  if (val >= 0) {
+    return newVal;
+  }
+  else {
+    return -newVal;
+  }
 
-  	return val;
+	//return val;
 }
-
 
 #ifndef RUNNING_FRC_TESTS
 int main() { return frc::StartRobot<Robot>(); }
