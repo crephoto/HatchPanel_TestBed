@@ -104,8 +104,8 @@ void Robot::TeleopInit() {
 
 #define DEADBAND 0.1
 void Robot::TeleopPeriodic() {
-  //mecanum drive
-  // m_robotDrive.DriveCartesian(deadBand(m_Xbox.GetRawAxis(0)), deadBand(-m_Xbox.GetRawAxis(1)), deadBand(m_Xbox.GetRawAxis(4)));
+  // mecanum drive
+  // m_robotDrive.DriveCartesian(m_Xbox.GetRawAxis(0), -m_Xbox.GetRawAxis(1), m_Xbox.GetRawAxis(4));
   // Disable Drive
   m_robotDrive.DriveCartesian(0.0, 0.0, 0.0);
 
@@ -149,25 +149,19 @@ void Robot::TeleopPeriodic() {
   else if (m_Xbox.GetRawButton(7)) {
      hingeMotor.Set(ControlMode::Position, HINGE_INTAKE_POSITION);
      printf("Setting Hinge Position to %d\n", HINGE_INTAKE_POSITION);
-     //hingeMotor.Set(ControlMode::Velocity, 140.0);
-     // printf("Setting Hinge Velocity to %f\n", 140.0);
   }
   else if (m_Xbox.GetRawButton(8)) {
      hingeMotor.Set(ControlMode::Position, HINGE_CLOSED_POSITION);
      printf("Setting Hinge Position to %d\n", HINGE_CLOSED_POSITION);
-     //hingeMotor.Set(ControlMode::Velocity, -140.0);
-     //printf("Setting Hinge Velocity to %f\n", -140.0);
   }
-  else {
-		int currentPosition = hingeMotor.GetSelectedSensorPosition(0);
-     hingeMotor.Set(ControlMode::Position, currentPosition);
-  }
+//  else {
+//		int currentPosition = hingeMotor.GetSelectedSensorPosition(0);
+//     hingeMotor.Set(ControlMode::Position, currentPosition);
+//  }
 		// Reset the starting configuration to zero 
-    /*
-  else if (m_Xbox.GetRawButton(10)) {
+  if (m_Xbox.GetRawButton(10)) {
       hingeMotor.Set(ControlMode::PercentOutput, 0.0);
     }
-  */
 }
 
 void Robot::TestPeriodic() {
