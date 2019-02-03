@@ -18,13 +18,14 @@ void Robot::RobotInit() {
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
+  m_robotDrive.SetSafetyEnabled(false);
   // frc::SmartDashboard::PutNumber("Front left encoder");
-  frc::Shuffleboard::GetTab("Encoders").Add("Front left encoder position", fl_encoder.GetPosition());
-  frc::Shuffleboard::GetTab("Encoders").Add("Rear left encoder position", rl_encoder.GetPosition());
-  frc::Shuffleboard::GetTab("Encoders").Add("Front right encoder position", fr_encoder.GetPosition());
-  frc::Shuffleboard::GetTab("Encoders").Add("Rear right encoder position", rr_encoder.GetPosition());
+  frc::Shuffleboard::GetTab("Sensors").Add("Front left drive", fl_encoder.GetPosition());
+  frc::Shuffleboard::GetTab("Sensors").Add("Rear left drive", rl_encoder.GetPosition());
+  frc::Shuffleboard::GetTab("Sensors").Add("Front right drive", fr_encoder.GetPosition());
+  frc::Shuffleboard::GetTab("Sensors").Add("Rear right drive", rr_encoder.GetPosition());
+  frc::Shuffleboard::GetTab("Sensors").Add("Gyro Angle", gyro.GetAngle());
   frc::Shuffleboard::GetTab("Light").Add("Light", 0);//.GetEntry();
-  // frc::Shuffleboard::GetTab("Encoders").Add("Front left encoder velocity", fl_encoder.GetVelocity());
   //frontRight.SetInverted(true);
   //rearRight.SetInverted(true);
 }
@@ -76,18 +77,23 @@ void Robot::TeleopInit() {
 
 #define DEADBAND 0.1
 void Robot::TeleopPeriodic() {
-  //mecanum drive
-  m_robotDrive.DriveCartesian(deadBand(m_Xbox.GetRawAxis(0)), -(deadBand(m_Xbox.GetRawAxis(1))), deadBand(m_Xbox.GetRawAxis(4)));
-  //m_robotDrive.DriveCartesian(m_Xbox.GetRawAxis(0), -m_Xbox.GetRawAxis(1), m_Xbox.GetRawAxis(4));
-  frc::SmartDashboard::PutNumber("Front left encoder position", fl_encoder.GetPosition());
-  // frc::SmartDashboard::PutNumber("Front left encoder velocity", fl_encoder.GetVelocity());
-  frc::SmartDashboard::PutNumber("Rear left encoder position", rl_encoder.GetPosition());
-  // frc::SmartDashboard::PutNumber("Rear left encoder velocity", rl_encoder.GetVelocity());
-  frc::SmartDashboard::PutNumber("Front right encoder position", fr_encoder.GetPosition());
-  // frc::SmartDashboard::PutNumber("Front right encoder velocity", fr_encoder.GetVelocity());
-  frc::SmartDashboard::PutNumber("Rear right encoder position", rr_encoder.GetPosition());
-  // frc::SmartDashboard::PutNumber("Rear right encoder velocity", rr_encoder.GetVelocity());
+  frc::SmartDashboard::PutNumber("Front left drive", fl_encoder.GetPosition());
+  frc::SmartDashboard::PutNumber("Rear left drive", rl_encoder.GetPosition());
+  frc::SmartDashboard::PutNumber("Front right drive", fr_encoder.GetPosition());
+  frc::SmartDashboard::PutNumber("Rear right drive", rr_encoder.GetPosition());
   
+  frc::SmartDashboard::PutNumber("Gyro Angle", gyro.GetAngle());
+  try{
+    //mecanum drive
+    m_robotDrive.DriveCartesian(deadBand(m_Xbox.GetRawAxis(0)), -deadBand(m_Xbox.GetRawAxis(1)), deadBand(m_Xbox.GetRawAxis(4)), -(gyro.GetAngle()));
+  }
+  catch(std::exception ex){
+    std::string err_string = "Error communicating with Drive System:  ";
+                err_string += ex.what();
+    DriverStation::ReportError(err_string.c_str());
+
+  }  
+
   //A button (hatch panel pneumatics)
   if (m_Xbox.GetAButton()) {
     hatchPanel.Set(frc::DoubleSolenoid::Value::kForward);
@@ -116,14 +122,25 @@ void Robot::TeleopPeriodic() {
   rearRight.Set(-inputPercent);*/
 
   //triggers (ball grabber)
-  if (m_Xbox.GetRawAxis(2)>DEADBAND) {
-    ballMotor.Set(ControlMode::PercentOutput, m_Xbox.GetRawAxis(2));
+ /*if (m_Xbox.GetRawAxis(2)>DEADBAND) {
+   ballMotor.Set(ControlMode::PercentOutput, m_Xbox.GetRawAxis(2));
   }
   else if (m_Xbox.GetRawAxis(3)>DEADBAND) {
      ballMotor.Set(ControlMode::PercentOutput, -m_Xbox.GetRawAxis(3));
     }
   else {
      ballMotor.Set(ControlMode::PercentOutput, 0.0);
+    }*/
+
+    //triggers (lift motor)
+      if (m_Xbox.GetRawAxis(2)>DEADBAND) {
+   liftMotor.Set(ControlMode::PercentOutput, m_Xbox.GetRawAxis(2));
+  }
+  else if (m_Xbox.GetRawAxis(3)>DEADBAND) {
+     liftMotor.Set(ControlMode::PercentOutput, -m_Xbox.GetRawAxis(3));
+    }
+  else {
+     liftMotor.Set(ControlMode::PercentOutput, 0.0);
     }
   
   //bumpers (hinge)
@@ -171,7 +188,7 @@ void Robot::TeleopPeriodic() {
 
 void Robot::TestPeriodic() {}
 
-double Robot::deadBand(double val) {
+  double Robot::deadBand(double val) {
   double newVal;
   if (val > -DEADBAND && val < DEADBAND) {
     return 0.0;
@@ -189,8 +206,6 @@ double Robot::deadBand(double val) {
 
 	//return val;
 }
-
-
 
 #ifndef RUNNING_FRC_TESTS
 int main() { return frc::StartRobot<Robot>(); }
