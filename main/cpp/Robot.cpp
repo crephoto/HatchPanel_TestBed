@@ -30,15 +30,16 @@ void Robot::RobotInit() {
   // frc::Shuffleboard::GetTab("Encoders").Add("Front left encoder velocity", fl_encoder.GetVelocity());
   // PID Hinge Configuration
 /* lets grab the 360 degree position of the MagEncoder's absolute position */
-		// int absolutePosition = hingeMotor.GetSelectedSensorPosition(0) & 0xFFF; /* mask out the bottom12 bits, we don't care about the wrap arounds */
+		int absolutePosition = hingeMotor.GetSelectedSensorPosition(0) & 0xFFF; /* mask out the bottom12 bits, we don't care about the wrap arounds */
 		/* use the low level API to set the quad encoder signal */
-		//hingeMotor.SetSelectedSensorPosition(absolutePosition, kPIDLoopIdx, kTimeoutMs);
+		hingeMotor.SetSelectedSensorPosition(absolutePosition, kPIDLoopIdx, kTimeoutMs);
 		// Reset the starting configuration to zero
-    hingeMotor.SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs);
+    // hingeMotor.SetSelectedSensorPosition(0, kPIDLoopIdx, kTimeoutMs);
 
 		/* choose the sensor and sensor direction */
 		hingeMotor.ConfigSelectedFeedbackSensor(
-				FeedbackDevice::CTRE_MagEncoder_Relative, kPIDLoopIdx, kTimeoutMs);
+				//FeedbackDevice::CTRE_MagEncoder_Relative, kPIDLoopIdx, kTimeoutMs);
+				FeedbackDevice::QuadEncoder, kPIDLoopIdx, kTimeoutMs);
 		hingeMotor.SetSensorPhase(true);
 
 		/* set the peak and nominal outputs, 12V means full */
@@ -51,7 +52,8 @@ void Robot::RobotInit() {
 		hingeMotor.Config_kF(kPIDLoopIdx, 0.0, kTimeoutMs);
 		hingeMotor.Config_kP(kPIDLoopIdx, 0.1, kTimeoutMs);
 		hingeMotor.Config_kI(kPIDLoopIdx, 0.0, kTimeoutMs);
-		hingeMotor.Config_kD(kPIDLoopIdx, 0.0, kTimeoutMs);  
+		hingeMotor.Config_kD(kPIDLoopIdx, 0.0, kTimeoutMs);
+    hingeMotor.ConfigClosedloopRamp(.2); // Seconds from neutral to full
 }
 
 /**
@@ -118,7 +120,8 @@ void Robot::TeleopPeriodic() {
   frc::SmartDashboard::PutNumber("Hinge", Robot::hingeMotor.Get());
   
   //A button (hatch panel pneumatics)
-  if (m_Xbox.GetAButton()) {
+  //if (m_Xbox.GetAButton()) {
+  if (m_Xbox.GetRawButton(1)) {
     hatchPanel.Set(frc::DoubleSolenoid::Value::kForward);
   }
   else {
@@ -141,7 +144,7 @@ void Robot::TeleopPeriodic() {
      hingeMotor.Set(ControlMode::PercentOutput, .25);
   }
   else if (m_Xbox.GetRawButton(6)) {
-     hingeMotor.Set(ControlMode::PercentOutput, -.25);
+     hingeMotor.Set(ControlMode::PercentOutput, -.5);
   }
   else if (m_Xbox.GetRawButton(7)) {
      hingeMotor.Set(ControlMode::Position, HINGE_INTAKE_POSITION);
@@ -155,10 +158,16 @@ void Robot::TeleopPeriodic() {
      //hingeMotor.Set(ControlMode::Velocity, -140.0);
      //printf("Setting Hinge Velocity to %f\n", -140.0);
   }
+  else {
+		int currentPosition = hingeMotor.GetSelectedSensorPosition(0);
+     hingeMotor.Set(ControlMode::Position, currentPosition);
+  }
+		// Reset the starting configuration to zero 
+    /*
   else if (m_Xbox.GetRawButton(10)) {
       hingeMotor.Set(ControlMode::PercentOutput, 0.0);
     }
-  // hingeMotor.Feed(); // Reset watchdog
+  */
 }
 
 void Robot::TestPeriodic() {
