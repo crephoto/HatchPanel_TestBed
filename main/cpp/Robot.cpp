@@ -77,7 +77,7 @@ void Robot::TeleopInit() {
 
 #define DEADBAND 0.1
 void Robot::TeleopPeriodic() {
-
+  
   frc::SmartDashboard::PutNumber("Gyro Angle", gyro.GetAngle());
   try{
     //mecanum drive
@@ -88,7 +88,7 @@ void Robot::TeleopPeriodic() {
                 err_string += ex.what();
     DriverStation::ReportError(err_string.c_str());
 
-  }
+  }  
 
   //A button (hatch panel pneumatics)
   if (m_Xbox.GetAButton()) {
