@@ -13,6 +13,7 @@
 #include <frc/smartdashboard/SendableChooser.h>
 #include <ctre/Phoenix.h>
 #include <rev/CANSparkMax.h>
+#include "AHRS.h"
 
 // Pnuematic Hatch Panel
 #define EXTEND 1
@@ -58,9 +59,13 @@ class Robot : public frc::TimedRobot {
   rev::CANEncoder fr_encoder = frontRight.GetEncoder();
   rev::CANEncoder rr_encoder = rearRight.GetEncoder();
 
+  // NavX
+  AHRS gyro{SPI::Port::kMXP};
+
   // Subsystem motors
   WPI_TalonSRX ballMotor{6};
   WPI_TalonSRX hingeMotor{7};
   bool hingePIDMode;
   frc::MecanumDrive m_robotDrive{frontLeft, rearLeft, frontRight, rearRight};
+
 };
