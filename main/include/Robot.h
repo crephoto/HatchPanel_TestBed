@@ -69,5 +69,6 @@ class Robot : public frc::TimedRobot {
   bool hingePIDMode;
   // Subsystem encoders
   frc::MecanumDrive m_robotDrive{frontLeft, rearLeft, frontRight, rearRight};
-
+  cs::UsbCamera camera;
+  AnalogInput hingeSensor{0};
 };
