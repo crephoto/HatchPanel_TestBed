@@ -5,6 +5,7 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
+#include "env.h"
 #include "Robot.h"
 
 #include <iostream>
@@ -64,7 +65,8 @@ void Robot::RobotInit() {
   frc::Shuffleboard::GetTab("Sensors").Add("Rear right drive", rr_encoder.GetPosition());
   frc::Shuffleboard::GetTab("Sensors").Add("Gyro Angle", gyro.GetAngle());
   frc::Shuffleboard::GetTab("Sensors").Add("Hinge Voltage", hingeSensor.GetVoltage());
-  frc::Shuffleboard::GetTab("Light").Add("Light", 0);//.GetEntry();
+  frc::Shuffleboard::GetTab("Main").Add("Code Version: ", ROBOT_VERSION_STRING);
+  frc::Shuffleboard::GetTab("Main").Add("Light", 0);//.GetEntry();
   //frontRight.SetInverted(true);
   //rearRight.SetInverted(true);
 }
